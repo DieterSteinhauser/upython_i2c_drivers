@@ -30,7 +30,9 @@ def check_type(value, name, expected_type):
         return None
 
     if not isinstance(value, expected_type):
-        raise ValueError(f"{name} '{value}' is not of type {expected_type.__name__}")
+
+        expected_type = [val.__name__ for val in expected_type] if isinstance(expected_type, (tuple, list)) else expected_type.__name__
+        raise ValueError(f"Incorrect {name}: '{value}'. {name} is not of type {expected_type}")
     
 
 def check_range(value, name, min_value, max_value):
@@ -47,7 +49,47 @@ def check_range(value, name, min_value, max_value):
         return None
 
     if not (min_value <= value <= max_value):
-        raise ValueError(f"{name} '{value}' is not within the range [{min_value}, {max_value}]")
+        raise ValueError(f"Incorrect {name}: '{value}'. {name} is not within the range [{min_value}, {max_value}]")
+    
+
+def check_str(value, name, expected_value):
+    """
+    Check if the value is one of the expected strings.
+
+    :param value: The value to check.
+    :param name: The variable name.
+    :param min_value: expected string value or list of values
+    :raises ValueError: If the value is outside the specified range.
+    """
+    if value is None:
+        return None
+
+    if isinstance(expected_value, str):
+        if not value == expected_value:
+            raise ValueError(f"Incorrect {name}: '{value}'. {name} is not the same as the expected string {expected_value}")
+        
+    if isinstance(expected_value, (list, tuple)):
+        if value not in expected_value:
+           raise ValueError(f"Incorrect {name}: '{value}'. {name} is not one of the expected strings {expected_value}") 
+        
+
+
+def check_list(value, name, expected_value):
+    """
+    Check if the value is one of the expected values of a list.
+
+    :param value: The value to check.
+    :param name: The variable name.
+    :param min_value: expected list of values
+    :raises ValueError: If the value is outside the specified range.
+    """
+    if value is None:
+        return None
+
+    if value not in expected_value:
+        raise ValueError(f"Incorrect {name}: '{value}'. {name} is not one of the expected values {expected_value}") 
+
+
 
 
 def read_modify(read_data, modify_data, bit_mask):

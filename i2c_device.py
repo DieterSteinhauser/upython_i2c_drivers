@@ -11,6 +11,7 @@ I2C Device, Register, and field objects for driver implementation
 #               IMPORTS
 # -----------------------------------------
 
+from helpers import check_range, check_type, check_str, check_list, read_modify
 
 # -----------------------------------------
 #               CLASS
@@ -21,12 +22,10 @@ _READ = ['R', 'R/W']
 _WRITE = ['W', 'R/W']
 
 
-# TODO: add support for endian swapping throughout the device
-# TODO: add support for 16 bit registers
-
 class Device:
 
-    def __init__(self, name:str, address:int, i2c_bus, description:str = None, endian='big', *args, **kwargs) -> None: 
+    def __init__(self, name:str, address:int, i2c_bus, description:str = None, width=8, endian='big', *args, **kwargs) -> None: 
+
         """
         Device Creation.
 
@@ -34,20 +33,31 @@ class Device:
         :type name: str
         :param address: device i2c address
         :type address: int
+        :param i2c_bus: I2C Bus object for communication
+        :type i2c_bus: i2c_bus
+        :param description: Short Description of the device, defaults to None
+        :type description: str, optional
+        :param width: register bit width must be a power of 2 between 8 and 64, defaults to 8
+        :type width: int, optional
+        :param endian: endian structure of device, either big or little, defaults to 'big'
+        :type endian: str, optional
         """
 
         # Check inputs for errors
-        if not isinstance(name, str):
-            raise ValueError(f" Incorrect type for name: {name}. Input should be a string")
-        
-        if not isinstance(address, int):
-            raise ValueError(f" Incorrect type for address: {address}. Input should be a Int")
+        check_type(name, 'name', str)
+        check_type(address, 'address', int)
+        check_type(width, 'width', int)
+        check_list(width, 'width', [8, 16, 32, 64])
+        check_type(endian, 'endian', str)
+        check_str(endian, 'endian', ('big', 'little'))
 
         self.name = name
         self.addr = address
         self.description = description
         self.registers= {}
         self.endian = endian
+        self.width = width
+        self.reg_bytes = width / 2
 
         if i2c_bus is not None:
             self.i2c_bus = i2c_bus
@@ -65,8 +75,8 @@ class Device:
         if not self.i2c_bus:
             raise ValueError("I2C bus not initialized.")
         
-        read_data = self.i2c_bus.readfrom(self.addr, 1)
-        return int.from_bytes(read_data, "big")
+        read_data = self.i2c_bus.readfrom(self.addr, self.reg_bytes)
+        return int.from_bytes(read_data, self.endian)
             
 
     def write(self, data):
@@ -80,7 +90,7 @@ class Device:
         """
         
         # Write the data to the bus
-        self.i2c_bus.writeto(self.addr, bytes([data]))
+        self.i2c_bus.writeto(self.addr, data.to_bytes(self.reg_bytes, self.endian))
         
         # Confirm the write by reading and comparing the data
         read_data = self.read()
@@ -88,7 +98,7 @@ class Device:
             raise ValueError(f"Write confirmation failed.\nRead Data: {read_data} \nWritten Data: {data}")
 
 
-    def add_register(self, name:str, address:int, *args, **kwargs) -> None: # TODO: Add register width
+    def add_register(self, name:str, address:int, *args, **kwargs) -> None:
         """
         Register addition to the device.
 
@@ -96,15 +106,13 @@ class Device:
         :type name: str
         :param address: Address of the Register.
         :type address: int
-        :param width: width, should be some power of 2, defaults to 8
-        :type width: int, optional
         """
 
         register = Register(self, name, address, *args, **kwargs)
         self.registers[name] = register
         setattr(self, name, register)
 
-    def reg_read(self, register): # TODO: Add register width and Endian
+    def reg_read(self, register):
         """
         Read data from a specific register in the device's memory.
 
@@ -115,11 +123,11 @@ class Device:
         if not self.i2c_bus:
             raise ValueError("I2C bus not initialized.")
         
-        read_data = self.i2c_bus.readfrom_mem(self.addr, register.addr, 1)
-        return int.from_bytes(read_data, "big")
+        read_data = self.i2c_bus.readfrom_mem(self.addr, register.addr, self.reg_bytes)
+        return int.from_bytes(read_data, self.endian)
             
 
-    def reg_write(self, register, data): # TODO: Add register width and maybe endian?
+    def reg_write(self, register, data):
         """
         Write data to a specific register in the device's memory.
 
@@ -130,7 +138,7 @@ class Device:
         """
         
         # Write the data to the bus
-        self.i2c_bus.writeto_mem(self.addr, register.addr, bytes([data]))
+        self.i2c_bus.writeto_mem(self.addr, register.addr, data.to_bytes(self.reg_bytes, self.endian))
         
         # If possible, confirm that we correctly edited the field.
         if self.register.r_w in _READ:
@@ -146,7 +154,7 @@ class Device:
 
 class Register:
 
-    def __init__(self, device, name : str, address : int, width : int = 8, r_w:str = "R/W", description : str = None, *args, **kwargs) -> None:
+    def __init__(self, device, name : str, address : int, r_w:str = "R/W", description : str = None, *args, **kwargs) -> None:
         """
         Register creation
 
@@ -154,29 +162,19 @@ class Register:
         :type name: str
         :param address: Address of the Register.
         :type address: int
-        :param width: width, should be some power of 2, defaults to 8
-        :type width: int, optional
         """
         # Check inputs for errors
-        if not isinstance(name, str):
-            raise ValueError(f" Incorrect type for name: {name}. Input should be a string")
-        
-        if not isinstance(address, int):
-            raise ValueError(f" Incorrect type for address: {address}. Input should be a Int")
-
-        if not isinstance(width, int):
-            raise ValueError(f" Incorrect type for width: {width}. Input should be a Int")
-
-        # check the width of a register is a power of 2
-        if width == 0 or width & (width-1) != 0:
-            raise ValueError(f" Incorrect value for address: {address}. Input should be a power of 2")
+        check_type(name, 'name', str)
+        check_type(address, 'address', int)
 
         self.name = name
         self.addr = address
-        self.width = width
         self.r_w = r_w
         self.description = description
         self.device = device
+        self.endian = device.endian
+        self.width = device.width
+        self.reg_bytes = self.width / 2
         self.fields= {}
         self.i2c_bus = device.i2c_bus
 
@@ -214,8 +212,8 @@ class Register:
         if self.r_w not in _READ:
             raise ValueError(f"Error writing to register, Permission is {self.r_w} 'Write Only'.")
 
-        read_byte = self.i2c_bus.readfrom_mem(self.device.addr, self.addr, 1) # TODO: add support for endian swapping and for 16 bit registers
-        return int.from_bytes(read_byte, "big")
+        read_byte = self.i2c_bus.readfrom_mem(self.device.addr, self.addr, self.reg_bytes)
+        return int.from_bytes(read_byte, self.endian)
     
          
     def write(self, value):
@@ -236,11 +234,10 @@ class Register:
 
         # Throw an error if the value is larger than the field width
         if value > (2**self.width - 1):
-            raise ValueError(f"Error writing to register, Value {value} is too large for register size {self.width}")
+            raise ValueError(f"Error writing to register, Value {value} is too large for {self.width}-bit register size ")
         
-        # TODO: add support for endian swapping and for 16 bit registers
         # Write the data to the bus
-        self.i2c_bus.writeto_mem(self.device.addr, self.addr, bytes([value]))
+        self.i2c_bus.writeto_mem(self.device.addr, self.addr, value.to_bytes(self.reg_bytes, self.endian))
         
         # If possible, confirm that we correctly edited the field.
         if self.r_w in _READ:
@@ -273,14 +270,11 @@ class Field:
         """
 
         # Check inputs for errors
-        if not isinstance(name, str):
-            raise ValueError(f" Incorrect type for name: {name}. Input should be a string")
-        
-        if not isinstance(bit_offset, int):
-            raise ValueError(f" Incorrect type for bit offset: {bit_offset}. Input should be a Int")
-        
-        if not isinstance(width, int):
-            raise ValueError(f" Incorrect type for size: {width}. Input should be a Int")
+        check_type(name, 'name', str)
+        check_type(bit_offset, 'bit_offset', int)
+        check_range(bit_offset, 'bit_offset', 0, (register.width - 1))
+        check_type(width, 'width', int)
+        check_range(width, 'width', 1, register.width)
         
         if not isinstance(r_w, str) or r_w not in _RW_TYPE:
             raise ValueError(f" Incorrect value for r_w: {r_w}. Input should be in {_RW_TYPE}")
@@ -292,6 +286,8 @@ class Field:
         self.description = description
         self.register = register
         self.device = register.device
+        self.endian = register.endian
+        self.reg_bytes = register.reg_bytes
         self.i2c_bus = register.i2c_bus
         
     def read(self):
@@ -309,8 +305,8 @@ class Field:
         if self.r_w not in _READ:
             raise ValueError(f"Error writing to field, Permission is {self.r_w} 'Write Only'.")
 
-        read_byte = self.i2c_bus.readfrom_mem(self.device.addr, self.register.addr, 1) # TODO: add support for endian swapping and for 16 bit registers
-        read_data = int.from_bytes(read_byte, "big")
+        read_byte = self.i2c_bus.readfrom_mem(self.device.addr, self.register.addr, self.register.width)
+        read_data = int.from_bytes(read_byte, self.endian)
         field =  (read_data >> self.bit_offset) & ((2**self.width) - 1)
         return field
             
@@ -332,21 +328,16 @@ class Field:
 
         # Throw an error if the value is larger than the field width
         if value > (2**self.width - 1):
-            raise ValueError(f"Error writing to field, Value {value} is too large for field size {self.size}")
+            raise ValueError(f"Error writing to field, Value {value} is too large for {self.size}-bit field size ")
         
         # Read the existing register data
         register_data = self.register.read()
 
-        # AND field bits with zero and don't care bits with one to clear field bits
-        register_data &= ~(((2**self.width)-1) << self.bit_offset)
+        # Perform a Read Modify Write Cycle.
+        write_data = read_modify(read_data = register_data, modify_data = (value << self.bit_offset), bit_mask = (((2**self.width)-1) << self.bit_offset))
 
-        # offset the value desired for the field and OR it with the existing register
-        register_data |= (value << self.bit_offset)
-        
-        # TODO: add support for endian swapping and for 16 bit registers
         # Write the data to the bus
-        self.i2c_bus.writeto_mem(self.device.addr, self.register.addr, bytes([int(register_data)]))
-        
+        self.i2c_bus.writeto_mem(self.device.addr, self.register.addr, write_data.to_bytes(self.reg_bytes, self.endian))
         
         # Confirm the write by reading and comparing the data
         read_data = self.read()
