@@ -67,7 +67,7 @@ class Device:
             # hex_addr = [hex(x) for x in devices]
 
             if address not in devices:
-                raise ValueError(f'Cannot find device address {address} upon instantiation of I2C device. \nFound Device addresses: {hex_addr} ')
+                raise ValueError(f'Cannot find device address {address} upon instantiation of I2C device. \nFound Device addresses: {devices} ')
 
  
     def read(self):
