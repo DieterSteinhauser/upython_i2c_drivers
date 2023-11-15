@@ -42,7 +42,7 @@ class TCA9548(Device):
     CHANNELS = tuple(range(0, 8))
     NUM_CHANNELS = len(CHANNELS)
     
-    def __init__(self, name:str, address:int, i2c_bus, description:str = None, *args, **kwargs) -> None:
+    def __init__(self, name:str, address:int, i2c_bus, description = None, *args, **kwargs) -> None:
         """Object initialization for TCA9548. Follow device initialization and adds register information to object"""
         super().__init__(name, address, i2c_bus, description, *args, **kwargs)
 
@@ -132,7 +132,7 @@ class TCA9548(Device):
 
 
 if __name__ == '__main__':
-    i2c_bus =  I2C(0, sda=Pin(12), scl=Pin(13), freq=100_000)
+    i2c_bus =  I2C(1, sda=Pin(14), scl=Pin(15), freq=100_000)
     tca =  TCA9548(name="TCA9548", address=0x70, i2c_bus=i2c_bus)
     devices = tca.i2c_bus.scan()
     hex_addr = [hex(x) for x in devices]

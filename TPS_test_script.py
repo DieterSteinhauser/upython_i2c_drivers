@@ -14,7 +14,7 @@ TPS55288 I2C Driver
 
 from machine import Pin, I2C
 from time import sleep
-from register_map import Device
+from i2c_device import Device
 from helpers import *
 from TPS55288 import TPS55288
 
@@ -22,7 +22,7 @@ from TPS55288 import TPS55288
 #               MAIN
 # -----------------------------------------
 
-i2c_bus =  I2C(0, sda=Pin(12), scl=Pin(13), freq=100_000)
+i2c_bus =  I2C(1, sda=Pin(14), scl=Pin(15), freq=100_000)
 
 if __name__ == '__main__':
     tps =  TPS55288(name="TPS_rail", address=0x74, i2c_bus=i2c_bus)

@@ -218,7 +218,7 @@ class TPS55288(Device):
 
     def current_limit(self, current_limit=None, enable=None):
         """
-        Query or Command the output enable status. if no value is given, return the current status.
+        Query or Command the output current limit and enable status. if no value is given, return the status of the current limit system.
 
         :param value: Enable value, active high, defaults to None
         :type value: int, optional
@@ -231,7 +231,7 @@ class TPS55288(Device):
             return_dict['enable'] = (register >> 7) & 1
             return register
         
-        check_type(current_limit, 'current_limit', int)
+        check_type(current_limit, 'current_limit', (int, float))
         check_range(current_limit, 'current_limit', 0, 0.0635)
                 
         check_type(enable, 'enable', int)
@@ -395,7 +395,7 @@ class TPS55288(Device):
 
 
         # Throw an error for incorrect voltage or current values
-        check_type(current_limit, 'current_limit', (int | float))
+        check_type(current_limit, 'current_limit', (int, float))
         check_range(current_limit, 'current_limit', 0, 6.35)
 
         # calculate the acceptable voltage drop between the ISP and ISN rails, a 10m ohm resistor on the EVM
@@ -414,7 +414,7 @@ class TPS55288(Device):
 
 
 if __name__ == '__main__':
-    i2c_bus =  I2C(0, sda=Pin(12), scl=Pin(13), freq=100_000)
+    i2c_bus =  I2C(1, sda=Pin(14), scl=Pin(15), freq=100_000)
     tps =  TPS55288(name="TPS_rail", address=0x74, i2c_bus=i2c_bus)
     devices = tps.i2c_bus.scan()
     hex_addr = [hex(x) for x in devices]

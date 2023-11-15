@@ -12,6 +12,7 @@ I2C Device, Register, and field objects for driver implementation
 # -----------------------------------------
 
 from helpers import check_range, check_type, check_str, check_list, read_modify
+from time import sleep, sleep_ms, sleep_us
 
 # -----------------------------------------
 #               CLASS
@@ -24,7 +25,7 @@ _WRITE = ['W', 'R/W']
 
 class Device:
 
-    def __init__(self, name:str, address:int, i2c_bus, description:str = None, width=8, endian='big', *args, **kwargs) -> None: 
+    def __init__(self, name:str, address:int, i2c_bus, description = None, width=8, endian='big', *args, **kwargs) -> None: 
 
         """
         Device Creation.
@@ -57,10 +58,17 @@ class Device:
         self.registers= {}
         self.endian = endian
         self.width = width
-        self.reg_bytes = width / 2
+        self.reg_bytes = int(width / 8)
 
         if i2c_bus is not None:
             self.i2c_bus = i2c_bus
+
+            devices = i2c_bus.scan()
+            # hex_addr = [hex(x) for x in devices]
+
+            if address not in devices:
+                raise ValueError(f'Cannot find device address {address} upon instantiation of I2C device. \nFound Device addresses: {hex_addr} ')
+
  
     def read(self):
         """
@@ -75,9 +83,8 @@ class Device:
         if not self.i2c_bus:
             raise ValueError("I2C bus not initialized.")
         
-        read_data = self.i2c_bus.readfrom(self.addr, self.reg_bytes)
-        return int.from_bytes(read_data, self.endian)
-            
+        read_data = self.i2c_bus.readfrom(self.addr, 1)
+        return int.from_bytes(read_data, self.endian) # type: ignore
 
     def write(self, data):
         """
@@ -124,7 +131,7 @@ class Device:
             raise ValueError("I2C bus not initialized.")
         
         read_data = self.i2c_bus.readfrom_mem(self.addr, register.addr, self.reg_bytes)
-        return int.from_bytes(read_data, self.endian)
+        return int.from_bytes(read_data, self.endian)  # type: ignore
             
 
     def reg_write(self, register, data):
@@ -141,7 +148,7 @@ class Device:
         self.i2c_bus.writeto_mem(self.addr, register.addr, data.to_bytes(self.reg_bytes, self.endian))
         
         # If possible, confirm that we correctly edited the field.
-        if self.register.r_w in _READ:
+        if register.r_w in _READ:
 
             # Confirm the write by reading and comparing the data
             read_data = self.reg_read(register)
@@ -154,7 +161,7 @@ class Device:
 
 class Register:
 
-    def __init__(self, device, name : str, address : int, r_w:str = "R/W", description : str = None, *args, **kwargs) -> None:
+    def __init__(self, device, name : str, address : int, r_w:str = "R/W", description = None, *args, **kwargs) -> None:
         """
         Register creation
 
@@ -174,7 +181,7 @@ class Register:
         self.device = device
         self.endian = device.endian
         self.width = device.width
-        self.reg_bytes = self.width / 2
+        self.reg_bytes = int(self.width / 8)
         self.fields= {}
         self.i2c_bus = device.i2c_bus
 
@@ -238,6 +245,9 @@ class Register:
         
         # Write the data to the bus
         self.i2c_bus.writeto_mem(self.device.addr, self.addr, value.to_bytes(self.reg_bytes, self.endian))
+
+        # let the device settle, avoids EIO error
+        sleep_us(10)
         
         # If possible, confirm that we correctly edited the field.
         if self.r_w in _READ:
@@ -251,7 +261,7 @@ class Register:
 
 class Field:
 
-    def __init__(self, register, name:str, bit_offset:int, width:int = 1, r_w:str = "R/W", description : str = None, *args, **kwargs) -> None:
+    def __init__(self, register, name:str, bit_offset:int, width:int = 1, r_w:str = "R/W", description = None, *args, **kwargs) -> None:
         """
         Field creation.
 
@@ -304,8 +314,9 @@ class Field:
         # Throw an error if not readable.
         if self.r_w not in _READ:
             raise ValueError(f"Error writing to field, Permission is {self.r_w} 'Write Only'.")
-
-        read_byte = self.i2c_bus.readfrom_mem(self.device.addr, self.register.addr, self.register.width)
+        
+        read_byte = self.i2c_bus.readfrom_mem(self.device.addr, self.register.addr, self.reg_bytes)
+        
         read_data = int.from_bytes(read_byte, self.endian)
         field =  (read_data >> self.bit_offset) & ((2**self.width) - 1)
         return field
@@ -328,16 +339,16 @@ class Field:
 
         # Throw an error if the value is larger than the field width
         if value > (2**self.width - 1):
-            raise ValueError(f"Error writing to field, Value {value} is too large for {self.size}-bit field size ")
+            raise ValueError(f"Error writing to field, Value {value} is too large for {self.width}-bit field size ")
         
-        # Read the existing register data
-        register_data = self.register.read()
-
         # Perform a Read Modify Write Cycle.
-        write_data = read_modify(read_data = register_data, modify_data = (value << self.bit_offset), bit_mask = (((2**self.width)-1) << self.bit_offset))
-
+        write_data = read_modify(read_data = self.register.read(), modify_data = (value << self.bit_offset), bit_mask = (((2**self.width)-1) << self.bit_offset))
+        
         # Write the data to the bus
         self.i2c_bus.writeto_mem(self.device.addr, self.register.addr, write_data.to_bytes(self.reg_bytes, self.endian))
+
+        # let the device settle, avoids EIO error
+        sleep_us(10)
         
         # Confirm the write by reading and comparing the data
         read_data = self.read()
