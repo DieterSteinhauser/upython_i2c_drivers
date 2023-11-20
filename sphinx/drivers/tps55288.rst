@@ -1,0 +1,7 @@
+TPS55288 DC/DC Buck-Boost I2C Driver
+====================================================
+
+ .. autoclass:: TPS55288.TPS55288
+   :members:
+   :undoc-members:
+

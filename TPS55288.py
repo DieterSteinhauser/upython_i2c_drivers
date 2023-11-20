@@ -12,7 +12,7 @@ TPS55288 I2C Driver
 #               IMPORTS
 # -----------------------------------------
 
-"""
+desc = r"""
 The TPS55288 uses I2C interface for flexible converter parameter programming. I2C is a bi-directional 2-wire
 serial interface. Only two bus lines are required: a serial data line (SDA) and a serial clock line (SCL). I2C
 devices can be considered as masters or slaves when performing data transfers. A master is the device that
@@ -28,7 +28,7 @@ supply voltage through current sources or pullup resistors. When the bus is free
 
 from machine import Pin, I2C
 from time import sleep
-from i2c_device import Device
+from i2c_device import Device, Register, Field
 from helpers import *
 # -----------------------------------------
 #                Class:
@@ -41,8 +41,19 @@ class TPS55288(Device):
     DEFAULT_ADDR = 0x74
     ALT_ADDR = 0x75
 
-    def __init__(self, name:str, address:int, i2c_bus, description:str = None, *args, **kwargs) -> None:
+    VREF_LOW: Register
+    VREF_HIGH: Register
+    IOUT_LIMIT: Register
+    VOUT_SR: Register
+    VOUT_FS: Register
+    CDC: Register
+    VOUT_FS: Register
+    MODE: Register
+    STATUS: Register
+
+    def __init__(self, name:str, address:int, i2c_bus, description = None, *args, **kwargs) -> None:
         """Object initialization for TPS55288. Follow device initialization and adds register information to object"""
+        description = desc if desc is None else description
         super().__init__(name, address, i2c_bus, description, *args, **kwargs)
 
         # Add device registers
@@ -252,6 +263,8 @@ class TPS55288(Device):
 
         :param value: _description_, defaults to None
         :type value: _type_, optional
+        :return: Returns the feedback ratio integer
+        :rtype: int
         """
         if feedback_ratio is None:
             return self.VOUT_FS.INTFB.read()

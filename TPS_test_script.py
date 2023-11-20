@@ -4,7 +4,7 @@
 """
 Dieter Steinhauser
 10/2023
-TPS55288 I2C Driver
+TPS55288 I2C Test Script
 
 """
 
@@ -13,7 +13,7 @@ TPS55288 I2C Driver
 # -----------------------------------------
 
 from machine import Pin, I2C
-from time import sleep
+import time
 from i2c_device import Device
 from helpers import *
 from TPS55288 import TPS55288
@@ -83,28 +83,28 @@ if __name__ == '__main__':
 
         print("")
         print((tps.reference_voltage()))
-        sleep(0.1)
+        time.sleep(0.1)
             
         print("")
         tps.reference_voltage(0.3)
         print('setting reference voltage')
-        sleep(0.1)
+        time.sleep(0.1)
         
             
         print("")
         print((tps.reference_voltage()))
-        sleep(0.1)
+        time.sleep(0.1)
         
         tps.reference_voltage(0.282)
-        sleep(0.1)
+        time.sleep(0.1)
         
         print("")
         print((tps.reference_voltage()))
-        sleep(0.1)
+        time.sleep(0.1)
         
         print("")
         print((tps.status()))
-        sleep(0.1)
+        time.sleep(0.1)
 
     test_output = True
     if test_output:
@@ -112,11 +112,11 @@ if __name__ == '__main__':
         # 5V output
         tps.voltage(5)
         print((tps.voltage()))
-        sleep(1)
+        time.sleep(1)
         
         print("")
         print((tps.reference_voltage()))
-        sleep(0.1)
+        time.sleep(0.1)
         
         print("")  
         print("Enabling the Output")
@@ -125,36 +125,36 @@ if __name__ == '__main__':
         
         # 20V output
         tps.voltage(20)
-        sleep(0.1)
+        time.sleep(0.1)
         print((tps.voltage()))
-        sleep(1)
+        time.sleep(1)
         
         # 19V output
         tps.voltage(19)
         print((tps.voltage()))
-        sleep(1)
+        time.sleep(1)
         
         # 12V output
         tps.voltage(11.9)
         print((tps.voltage()))
-        sleep(1)
+        time.sleep(1)
         
         # 9V output
         tps.voltage(9)
         print((tps.voltage()))
-        sleep(1)
+        time.sleep(1)
 
         # 5V output
         tps.voltage(5)
         print((tps.voltage()))
-        sleep(1)
+        time.sleep(1)
 
         # 3.3V output
         tps.voltage(3.24)
         print((tps.voltage()))
-        sleep(1)
+        time.sleep(1)
         
-        sleep(5)
+        time.sleep(5)
         tps.output_enable(value=0)
         print(tps.output_enable())
 

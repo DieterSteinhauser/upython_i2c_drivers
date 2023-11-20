@@ -1,0 +1,6 @@
+TCA9548 I2C Switch Driver
+====================================================
+
+.. autoclass:: TCA9548.TCA9548
+   :members:
+   :undoc-members:

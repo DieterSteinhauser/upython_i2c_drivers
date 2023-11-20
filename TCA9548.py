@@ -12,7 +12,7 @@ TCA9548 I2C Driver
 #               IMPORTS
 # -----------------------------------------
 
-"""
+desc = r"""
 The TCA9548A device has eight bidirectional translating switches that can be controlled throughthe I2C bus. The SCL/SDA upstream pair fans out to
 eight downstream pairs, or channels. Any individual SCn/SDn channel or combination of channels can be selected, determined by the contents of the
 programmable control register. These downstream channels can be used to resolve I2C slave address conflicts. For example, if eight identical digital
@@ -26,7 +26,6 @@ A device can have one or multiple registers where data is stored, written, or re
 """
 
 from machine import Pin, I2C
-from time import sleep
 from i2c_device import Device
 from helpers import *
 # -----------------------------------------
@@ -44,6 +43,7 @@ class TCA9548(Device):
     
     def __init__(self, name:str, address:int, i2c_bus, description = None, *args, **kwargs) -> None:
         """Object initialization for TCA9548. Follow device initialization and adds register information to object"""
+        description = desc if desc is None else description
         super().__init__(name, address, i2c_bus, description, *args, **kwargs)
 
         

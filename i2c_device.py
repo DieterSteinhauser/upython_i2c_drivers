@@ -12,7 +12,7 @@ I2C Device, Register, and field objects for driver implementation
 # -----------------------------------------
 
 from helpers import check_range, check_type, check_str, check_list, read_modify
-from time import sleep, sleep_ms, sleep_us
+import time
 
 # -----------------------------------------
 #               CLASS
@@ -247,7 +247,7 @@ class Register:
         self.i2c_bus.writeto_mem(self.device.addr, self.addr, value.to_bytes(self.reg_bytes, self.endian))
 
         # let the device settle, avoids EIO error
-        sleep_us(10)
+        # time.sleep_us(10)
         
         # If possible, confirm that we correctly edited the field.
         if self.r_w in _READ:
@@ -348,7 +348,7 @@ class Field:
         self.i2c_bus.writeto_mem(self.device.addr, self.register.addr, write_data.to_bytes(self.reg_bytes, self.endian))
 
         # let the device settle, avoids EIO error
-        sleep_us(10)
+        # time.sleep_us(10)
         
         # Confirm the write by reading and comparing the data
         read_data = self.read()

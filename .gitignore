@@ -1,0 +1,15 @@
+*.zip
+*.jpg
+*.xml
+*.grp
+*.dat
+.idea/
+venv/
+test.files/
+
+sphinx/_build
+sphinx/_static
+sphinx/_templates
+
+__pycache__
+
