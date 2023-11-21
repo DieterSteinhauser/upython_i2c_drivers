@@ -51,9 +51,9 @@ class BQ25756(Device):
     I2C_MAX_FREQ = 1_000_000
     DEFAULT_ADDR = 0x6B
 
-    def __init__(self, name:str, address:int, i2c_bus, description:str = None, *args, **kwargs) -> None:
+    def __init__(self, name:str, address:int, i2c_bus, description:str = None, width = 16, endian = 'little', *args, **kwargs) -> None:
         """Object initialization for BQ25756. Follow device initialization and adds register information to object"""
-        super().__init__(name, address, i2c_bus, description, *args, **kwargs)
+        super().__init__(name, address, i2c_bus, description, width, endian, *args, **kwargs)
 
         # Add device registers
         self.add_register("CHARGE_VOLT_LIMIT", 0x00, r_w = "R/W", description='Charge Voltage limit register.')
