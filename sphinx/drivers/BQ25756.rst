@@ -1,0 +1,7 @@
+BQ25756 DC/DC Battery Charger
+====================================================
+
+ .. autoclass:: BQ25756.BQ25756
+   :members:
+   :undoc-members:
+

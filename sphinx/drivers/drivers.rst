@@ -9,6 +9,7 @@ I2C Drivers
    i2c_device
    tca9548
    tps55288
+   BQ25756
    
 
    
