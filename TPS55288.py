@@ -1,12 +1,11 @@
 # -----------------------------------------
 #                 NOTES 
 # -----------------------------------------
-"""
-Dieter Steinhauser
-10/2023
-TPS55288 I2C Driver
+# 
+# Dieter Steinhauser
+# 10/2023
+# TPS55288 I2C Driver
 
-"""
 
 # -----------------------------------------
 #               IMPORTS
@@ -50,6 +49,7 @@ class TPS55288(Device):
     VOUT_FS: Register
     MODE: Register
     STATUS: Register
+
 
     def __init__(self, name:str, address:int, i2c_bus, description = None, *args, **kwargs) -> None:
         """Object initialization for TPS55288. Follow device initialization and adds register information to object"""

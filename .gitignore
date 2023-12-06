@@ -13,3 +13,6 @@ sphinx/_templates
 
 __pycache__
 
+.vscode
+.micropico
+

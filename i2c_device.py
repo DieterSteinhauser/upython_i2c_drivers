@@ -1,17 +1,15 @@
 # -----------------------------------------
 #                 NOTES 
 # -----------------------------------------
-"""
-Dieter Steinhauser
-10/2023
-I2C Device, Register, and field objects for driver implementation
+# Dieter Steinhauser
+# 10/2023
+# I2C Device, Register, and field objects for driver implementation
 
-"""
 # -----------------------------------------
 #               IMPORTS
 # -----------------------------------------
 
-from helpers import check_range, check_type, check_str, check_list, read_modify
+from helpers import *
 import time
 
 # -----------------------------------------
@@ -28,7 +26,7 @@ class Device:
     def __init__(self, name:str, address:int, i2c_bus, description = None, width=8, endian='big', *args, **kwargs) -> None: 
 
         """
-        Device Creation.
+        Creation of an I2C Device.
 
         :param name: Device name.
         :type name: str
