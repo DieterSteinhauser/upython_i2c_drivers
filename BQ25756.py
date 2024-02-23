@@ -51,7 +51,7 @@ class BQ25756(Device):
     I2C_MAX_FREQ = 1_000_000
     DEFAULT_ADDR = 0x6B
 
-    def __init__(self, name:str, address:int, i2c_bus, description:str = None, width = 16, endian = 'little', *args, **kwargs) -> None:
+    def __init__(self, name:str, address:int, i2c_bus, description:str = 'None', width = 16, endian = 'little', *args, **kwargs) -> None:
         """Object initialization for BQ25756. Follow device initialization and adds register information to object"""
         super().__init__(name, address, i2c_bus, description, width, endian, *args, **kwargs)
 
@@ -295,14 +295,14 @@ class BQ25756(Device):
         self.TERM_CURR_LIMIT.ITERM_REG.write(bit_value)
 
 
-if __name__ == '__main__':
+# if __name__ == '__main__':
 
-    i2c_bus =  I2C(0, sda=Pin(12), scl=Pin(13), freq=100_000)
+#     i2c_bus =  I2C(0, sda=Pin(12), scl=Pin(13), freq=100_000)
 
-    bq =  BQ25756(name="BQ25756", address=0x6B, i2c_bus=i2c_bus)
-    devices = bq.i2c_bus.scan()
-    hex_addr = [hex(x) for x in devices]
-    print(f"Seen device addresses: {hex_addr}")
+#     bq =  BQ25756(name="BQ25756", address=0x6B, i2c_bus=i2c_bus)
+#     devices = bq.i2c_bus.scan()
+#     hex_addr = [hex(x) for x in devices]
+#     print(f"Seen device addresses: {hex_addr}")
 
 
     # bq.VOLT_LIMIT.VFB_REG.write()

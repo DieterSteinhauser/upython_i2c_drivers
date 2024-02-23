@@ -67,7 +67,7 @@ class TPS55288(Device):
         self.add_register("STATUS", 0x7, r_w = "R", description='Operating Status')
 
         # Add fields to each register
-        self.VREF_LOW.add_field(name='REF_LSB', bit_offset=0, width=8, r_w="R/W", description="VREF Lower byte. 10 bits total.")
+        self.VREF_LOW.add_field(name='REF_LSB', bit_offset=0, width=0, r_w="R/W", description="VREF Lower byte. 10 bits total.")
 
         self.VREF_HIGH.add_field(name='REF_MSB', bit_offset=0, width=2, r_w="R/W", description="VREF higher bits. 10 bits total.")
 
