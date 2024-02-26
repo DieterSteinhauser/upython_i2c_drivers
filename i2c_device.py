@@ -119,6 +119,9 @@ class Device:
         self.registers[name] = register
         setattr(self, name, register)
 
+    def __getattr__(self, name):
+        return self.registers[name]
+
     def reg_read(self, register):
         """
         Read data from a specific register in the device's memory.
@@ -204,6 +207,9 @@ class Register:
         self.fields[name] = field
         setattr(self, name, field)
 
+    def __getattr__(self, name):
+        return self.fields[name]
+    
     def read(self):
         """
         Read from the register.
