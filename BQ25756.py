@@ -39,7 +39,7 @@ pull-up resistor
 
 from machine import Pin, I2C
 from time import sleep
-from i2c_device import Device
+from i2c_device import Device, Register, Field
 from helpers import *
 # -----------------------------------------
 #                Class:
@@ -50,6 +50,20 @@ class BQ25756(Device):
     I2C_MIN_FREQ = 100_000
     I2C_MAX_FREQ = 1_000_000
     DEFAULT_ADDR = 0x6B
+
+    CHARGE_VOLT_LIMIT: Register
+    CHARGE_CURR_LIMIT: Register
+    INPUT_CURR_LIMIT: Register
+    INPUT_VOLT_LIMIT: Register
+    PRECHG_CURR_LIMIT: Register
+    TERM_CURR_LIMIT: Register
+
+    VFB_REG: Field
+    ICHG_REG: Field
+    IAC_DPM: Field
+    VAC_DPM: Field
+    PRECHG_REG: Field
+    ITERM_REG: Field
 
     def __init__(self, name:str, address:int, i2c_bus, description:str = 'None', width = 16, endian = 'little', *args, **kwargs) -> None:
         """Object initialization for BQ25756. Follow device initialization and adds register information to object"""
@@ -125,7 +139,7 @@ class BQ25756(Device):
             bit_value = self.CHARGE_VOLT_LIMIT.VFB_REG.read()
 
             # format for the user in a similar fashion to the input.
-            voltage_mv = (bit_value * 2) + 1054
+            voltage_mv = (bit_value * 2) + 1504
 
             return voltage_mv
 
@@ -293,6 +307,12 @@ class BQ25756(Device):
 
         # Write to the register
         self.TERM_CURR_LIMIT.ITERM_REG.write(bit_value)
+    
+    def status(self):
+        """
+        method to query the status register on the device. Reset's the STATUS register after reading.
+        """
+        print("Status: made it to this point")
 
 
 # if __name__ == '__main__':
