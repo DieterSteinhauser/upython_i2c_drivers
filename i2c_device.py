@@ -1,10 +1,12 @@
 # -----------------------------------------
 #                 NOTES 
 # -----------------------------------------
-# Dieter Steinhauser
-# 10/2023
-# I2C Device, Register, and field objects for driver implementation
+"""
+Dieter Steinhauser
+10/2023
+I2C Device, Register, and field objects for driver implementation
 
+"""
 # -----------------------------------------
 #               IMPORTS
 # -----------------------------------------
@@ -26,7 +28,7 @@ class Device:
     def __init__(self, name:str, address:int, i2c_bus, description = None, width=8, endian='big', *args, **kwargs) -> None: 
 
         """
-        Creation of an I2C Device.
+        Device Creation.
 
         :param name: Device name.
         :type name: str
@@ -117,6 +119,9 @@ class Device:
         self.registers[name] = register
         setattr(self, name, register)
 
+    def __getattr__(self, name):
+        return self.registers[name]
+
     def reg_read(self, register):
         """
         Read data from a specific register in the device's memory.
@@ -202,6 +207,9 @@ class Register:
         self.fields[name] = field
         setattr(self, name, field)
 
+    def __getattr__(self, name):
+        return self.fields[name]
+    
     def read(self):
         """
         Read from the register.
