@@ -11,7 +11,7 @@ I2C Device, Register, and field objects for driver implementation
 #               IMPORTS
 # -----------------------------------------
 
-from helpers import *
+from upython_i2c_drivers.helpers import *
 import time
 
 # -----------------------------------------
@@ -86,7 +86,7 @@ class Device:
         read_data = self.i2c_bus.readfrom(self.addr, 1)
         return int.from_bytes(read_data, self.endian) # type: ignore
 
-    def write(self, data):
+    def write(self, data, read_check=True):
         """
         Write data to the device.
 
@@ -99,10 +99,13 @@ class Device:
         # Write the data to the bus
         self.i2c_bus.writeto(self.addr, data.to_bytes(self.reg_bytes, self.endian))
         
-        # Confirm the write by reading and comparing the data
-        read_data = self.read()
-        if read_data != data:
-            raise ValueError(f"Write confirmation failed.\nRead Data: {read_data} \nWritten Data: {data}")
+        if read_check:
+
+            # Confirm the write by reading and comparing the data
+            read_data = self.read()
+            
+            if read_data != data:
+                raise ValueError(f"Write confirmation failed.\nRead Data: {read_data}:   {bin(read_data)} \nWritten Data: {data}: {bin(data)}")
 
 
     def add_register(self, name:str, address:int, *args, **kwargs) -> None:
@@ -119,8 +122,8 @@ class Device:
         self.registers[name] = register
         setattr(self, name, register)
 
-    def __getattr__(self, name):
-        return self.registers[name]
+    # def __getattr__(self, name):
+    #     return self.registers[name]
 
     def reg_read(self, register):
         """
@@ -207,8 +210,8 @@ class Register:
         self.fields[name] = field
         setattr(self, name, field)
 
-    def __getattr__(self, name):
-        return self.fields[name]
+    # def __getattr__(self, name):
+    #     return self.fields[name]
     
     def read(self):
         """
