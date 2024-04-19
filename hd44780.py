@@ -207,8 +207,7 @@ class Hd44780(Device):
         # if we have hit the end of our rows, reset to the beginning.
         if self._y >= self.rows:
             self._y = 0
-
-        # TODO: find out if this is necessary. I thought this happened on its own.
+        
         self.move_to(self._x, self._y)
 
     # -----------------------------------------
