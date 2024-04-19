@@ -274,7 +274,6 @@ class Hd44780(Device):
 
     # -----------------------------------------
 
-
     def backlight(self, status=None):
         """
         Command or query the status of the backlight on the device.
@@ -297,7 +296,6 @@ class Hd44780(Device):
         self._backlight = status
         self.write((status << 3), read_check=False)
         gc.collect()
-
 
     # ----------------------------------------- 
 
