@@ -91,6 +91,8 @@ class Hd44780(Device):
     _LCD_CGRAM = 0x40            # DB6: set CG RAM address
     _LCD_DDRAM = 0x80            # DB7: set DD RAM address
 
+    DEG_SYMBOL = chr(223) # Degree symbol for LCD
+
     def __init__(self, name:str, address:int, i2c_bus, rows:int=2, columns:int=16, description = None, *args, **kwargs) -> None:
         """Object initialization for HD44780 Dot Matrix LCD using PCF8574 IO Expander"""
 
@@ -187,6 +189,21 @@ class Hd44780(Device):
         time.sleep_ms(1)
         gc.collect()
 
+    def _fast_putch(self, char):
+        """Write a character on to the LCD. No newline support"""
+
+        # Write to the LCD and advance the column.
+        self._write_data(ord(char))
+        self._x += 1
+
+        # if we have hit the end or the row, advance to the next row.
+        if self._x >= self.columns:
+            self._x = 0
+            self._y += 1
+
+        # if we have hit the end of our rows, reset to the beginning.
+        self._y = 0 if self._y >= self.rows else self._y
+
     def _putch(self, char):
         """Write a character on to the LCD."""
 
@@ -208,6 +225,7 @@ class Hd44780(Device):
         if self._y >= self.rows:
             self._y = 0
         
+        # provide movement to the LCD
         self.move_to(self._x, self._y)
 
     # -----------------------------------------
@@ -235,6 +253,14 @@ class Hd44780(Device):
 
         for element in string:
             self._putch(element)
+
+    # -----------------------------------------
+
+    def fast_print(self, string):
+        """Write a string on to the LCD. Faster but lacks Newline support"""
+
+        for element in string:
+            self._fast_putch(element)
                
     # -----------------------------------------
 
@@ -333,6 +359,50 @@ class Hd44780(Device):
             self._write_data(charmap[i])
             time.sleep_us(40)
         
+        self.move_to(self._x, self._y)
+
+    # -----------------------------------------
+
+    def newline(self):
+        """Move the cursor to the start of a new line."""
+
+        # carriage return
+        self._x = 0
+
+        # line feed
+        self._y += 1
+
+        # if we have hit the end of our rows, reset to the beginning.
+        if self._y >= self.rows:
+            self._y = 0
+        
+        # provide movement to the LCD
+        self.move_to(self._x, self._y)
+
+    # -----------------------------------------
+
+    def carriage_return(self):
+        """Return the Cursor to the start of the existing line"""
+
+        # carriage return
+        self._x = 0
+
+        # provide movement to the LCD
+        self.move_to(self._x, self._y)
+
+    # -----------------------------------------
+
+    def line_feed(self):
+        """Move the cursor down one row. Column remains the same."""
+
+        # line feed
+        self._y += 1
+
+        # if we have hit the end of our rows, reset to the beginning.
+        if self._y >= self.rows:
+            self._y = 0
+        
+        # provide movement to the LCD
         self.move_to(self._x, self._y)
 
 

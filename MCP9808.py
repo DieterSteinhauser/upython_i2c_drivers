@@ -16,8 +16,8 @@ desc = r"""none for the moment"""
 
 from machine import Pin, I2C
 from time import sleep
-from upy_i2c_drivers.i2c_device import Device, Register, Field
-from upy_i2c_drivers.helpers import *
+from upython_i2c_drivers.i2c_device import Device, Register, Field
+from upython_i2c_drivers.helpers import *
 # -----------------------------------------
 #                Class:
 # -----------------------------------------
